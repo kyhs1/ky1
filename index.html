@@ -1,53 +1,292 @@
-async function fetchSheetData() {
-    const loadingUI = document.getElementById('loadingUI');
-    const refreshIcon = document.getElementById('refreshIcon');
-
-    loadingUI.classList.remove('hidden');
-    refreshIcon.classList.add('fa-spin');
-
-    try {
-        const response = await fetch(SHEET_URL);
-        const csvData = await response.text();
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026학년도 경일고 1학년부 프로그램 센터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
         
-        // 엑셀/구글시트의 CSV 특성을 고려한 행 분리 (따옴표 안의 줄바꿈 보호)
-        const rows = csvData.match(/(".*?"|[^"\r\n]+)(?=\r*\n|$)|(?<=\n|^)\r*\n/g) || [];
-        
-        programs = rows.slice(1).map(row => {
-            // 쉼표로 분리하되 따옴표로 묶인 내용은 하나로 취급
-            const cols = [];
-            let current = '';
-            let inQuotes = false;
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            word-break: keep-all;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-            for (let i = 0; i < row.length; i++) {
-                const char = row[i];
-                if (char === '"') inQuotes = !inQuotes;
-                else if (char === ',' && !inQuotes) {
-                    cols.push(current.trim());
-                    current = '';
+        .preserve-line { white-space: pre-line; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .active-scale:active { transform: scale(0.97); }
+
+        #browserLinkLayer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div id="browserLinkLayer">
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-external-link-alt text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-extrabold text-slate-800 mb-2">외부 브라우저에서 열기</h2>
+        <p class="text-slate-500 text-sm mb-8 leading-relaxed">
+            안전하고 원활한 신청을 위해<br>
+            Chrome 또는 Safari 브라우저로 이동합니다.
+        </p>
+        <div class="loader"></div>
+    </div>
+
+    <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                    <i class="fas fa-graduation-cap text-sm"></i>
+                </div>
+                <span class="font-extrabold text-base text-slate-800 tracking-tight">2026학년도 경일고 1학년부</span>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-blue-600 py-10 px-6 text-center relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl mx-auto">
+            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-tight">1학년 프로그램 안내 센터</h1>
+            <p class="text-blue-100 text-sm opacity-90 leading-relaxed">자세한 사항은 학급게시판이나 가정통신문을 확인하시기 바랍니다.</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 -mt-6">
+        <div class="bg-white p-4 rounded-2xl shadow-lg shadow-slate-200/50 mb-8 border border-slate-100">
+            <div class="flex flex-col gap-3">
+                <div class="relative w-full">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="searchInput" oninput="renderContent()" placeholder="프로그램 명칭 검색..." 
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-medium">
+                </div>
+                <div class="flex gap-2">
+                    <select id="statusFilter" onchange="renderContent()" class="flex-grow bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none text-sm font-bold text-slate-600 appearance-none">
+                        <option value="전체">전체 상태보기</option>
+                        <option value="접수중">접수중</option>
+                        <option value="준비중">준비중</option>
+                        <option value="마감">마감</option>
+                    </select>
+                    <button onclick="fetchSheetData()" class="px-5 py-3 bg-slate-100 text-slate-600 rounded-xl active-scale">
+                        <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingUI" class="flex flex-col items-center py-20">
+            <div class="loader mb-4"></div>
+            <p class="text-slate-400 text-sm font-medium">데이터를 불러오는 중입니다...</p>
+        </div>
+
+        <div id="programGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+        <div id="errorUI" class="hidden py-20 text-center">
+            <i class="fas fa-exclamation-circle text-red-400 text-3xl mb-3"></i>
+            <p class="text-slate-600 font-bold">데이터 로드에 실패했습니다.</p>
+        </div>
+    </main>
+
+    <script>
+        function checkKakaotalk() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isKakaotalk = userAgent.indexOf('kakaotalk') !== -1;
+            if (isKakaotalk) {
+                document.getElementById('browserLinkLayer').style.display = 'flex';
+                const currentUrl = window.location.href;
+                if (userAgent.match(/iphone|ipad|ipod/)) {
+                    location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(currentUrl);
                 } else {
-                    current += char;
+                    location.href = 'intent://' + currentUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=https;package=com.android.chrome;end';
                 }
             }
-            cols.push(current.trim());
+        }
 
-            // 양 끝 따옴표 제거 및 내부 쌍따옴표 정리
-            const clean = cols.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
-            
-            return {
-                title: clean[0] || '',       // A열: 프로그램명
-                status: clean[1] || '접수중',   // B열: 접수유무
-                desc: clean[2] || '',        // C열: 설명
-                submission: clean[3] || '',  // D열: 접수방법
-                url: clean[4] || '#'         // E열: 신청링크 or 제출처
-            };
-        }).filter(p => p.title && p.title !== ""); 
+        const SHEET_ID = '1V6dG7U79lfe7-kidJKuGTOSlyIzIL0AOEweYQ2F_H5E';
+        const TAB_NAME = 'Sheet1'; 
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${TAB_NAME}`;
 
-        renderContent();
-    } catch (error) {
-        console.error(error);
-        document.getElementById('errorUI').classList.remove('hidden');
-    } finally {
-        loadingUI.classList.add('hidden');
-        refreshIcon.classList.remove('fa-spin');
-    }
-}
+        let programs = [];
+
+        async function fetchSheetData() {
+            const loadingUI = document.getElementById('loadingUI');
+            const refreshIcon = document.getElementById('refreshIcon');
+            const errorUI = document.getElementById('errorUI');
+
+            loadingUI.classList.remove('hidden');
+            errorUI.classList.add('hidden');
+            refreshIcon.classList.add('fa-spin');
+
+            try {
+                const response = await fetch(SHEET_URL);
+                const csvData = await response.text();
+                
+                // 줄바꿈을 고려하여 행을 분리하는 로직 (안정적인 CSV 파싱)
+                const rows = [];
+                let currentRow = "";
+                let inQuotes = false;
+                
+                for (let i = 0; i < csvData.length; i++) {
+                    const char = csvData[i];
+                    if (char === '"') inQuotes = !inQuotes;
+                    if ((char === '\n' || char === '\r') && !inQuotes) {
+                        if (currentRow.trim()) rows.push(currentRow);
+                        currentRow = "";
+                    } else {
+                        currentRow += char;
+                    }
+                }
+                if (currentRow.trim()) rows.push(currentRow);
+
+                // 첫 줄(헤더) 제외하고 데이터 가공
+                programs = rows.slice(1).map(row => {
+                    const cols = [];
+                    let colValue = "";
+                    let colInQuotes = false;
+
+                    for (let j = 0; j < row.length; j++) {
+                        const char = row[j];
+                        if (char === '"') colInQuotes = !colInQuotes;
+                        else if (char === ',' && !colInQuotes) {
+                            cols.push(colValue.trim());
+                            colValue = "";
+                        } else {
+                            colValue += char;
+                        }
+                    }
+                    cols.push(colValue.trim());
+
+                    const clean = cols.map(c => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                    
+                    return {
+                        title: clean[0] || '',       // A열: 프로그램명
+                        status: clean[1] || '접수중',   // B열: 접수유무
+                        desc: clean[2] || '',        // C열: 설명
+                        submission: clean[3] || '',  // D열: 접수방법
+                        url: clean[4] || '#'         // E열: 신청링크 or 제출처
+                    };
+                }).filter(p => p.title !== ''); 
+
+                renderContent();
+            } catch (error) {
+                console.error(error);
+                errorUI.classList.remove('hidden');
+            } finally {
+                loadingUI.classList.add('hidden');
+                refreshIcon.classList.remove('fa-spin');
+            }
+        }
+
+        function renderContent() {
+            const grid = document.getElementById('programGrid');
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            grid.innerHTML = '';
+
+            const filtered = programs.filter(p => {
+                const matchesKeyword = p.title.toLowerCase().includes(keyword) || p.desc.toLowerCase().includes(keyword);
+                const matchesStatus = statusFilter === '전체' || p.status === statusFilter;
+                return matchesKeyword && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 text-sm font-bold">표시할 프로그램이 없습니다.</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isAccepting = p.status === '접수중';
+                const isPreparing = p.status === '준비중';
+                const isOnline = p.submission.includes('온라인');
+                
+                let statusClass = 'bg-slate-100 text-slate-500'; 
+                let dotClass = 'bg-slate-400';
+
+                if (isAccepting) {
+                    statusClass = 'bg-emerald-100 text-emerald-700';
+                    dotClass = 'bg-emerald-500 animate-pulse';
+                } else if (isPreparing) {
+                    statusClass = 'bg-amber-100 text-amber-700';
+                    dotClass = 'bg-amber-500';
+                }
+
+                let actionArea = '';
+                if (isAccepting) {
+                    if (isOnline) {
+                        actionArea = `
+                            <a href="${p.url}" target="_blank" class="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-md active-scale">
+                                신청하기
+                            </a>`;
+                    } else {
+                        actionArea = `
+                            <div class="flex flex-col items-center justify-center w-full py-3 px-2 bg-emerald-50 border border-emerald-100 rounded-xl text-center shadow-sm">
+                                <span class="text-[9px] font-bold text-emerald-500 uppercase mb-0.5 tracking-wider font-sans">제출처</span>
+                                <span class="text-sm font-extrabold text-emerald-800">${p.url}</span>
+                            </div>`;
+                    }
+                } else {
+                    actionArea = `
+                        <button disabled class="w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-xl text-sm cursor-not-allowed">
+                            ${isPreparing ? '곧 시작됩니다' : '마감되었습니다'}
+                        </button>`;
+                }
+                
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="bg-white rounded-2xl border border-slate-100 flex flex-col p-6 shadow-sm relative active-scale">
+                        <div class="flex-grow">
+                            <div class="mb-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusClass}">
+                                    <span class="w-1 h-1 rounded-full ${dotClass} mr-1.5"></span>
+                                    ${p.status}
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-extrabold text-slate-800 mb-2 leading-tight">${p.title}</h3>
+                            <p class="text-slate-500 text-sm leading-relaxed mb-6 preserve-line line-clamp-3 font-medium">${p.desc}</p>
+                        </div>
+                        <div class="mt-auto pt-4 border-t border-slate-50">
+                            <div class="flex items-center gap-2 text-slate-600 mb-4">
+                                <i class="fas ${isOnline ? 'fa-globe' : 'fa-hand-paper'} text-xs"></i>
+                                <span class="text-xs font-extrabold tracking-tight">${isOnline ? '온라인 접수' : '오프라인 접수'}</span>
+                            </div>
+                            ${actionArea}
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        window.onload = function() {
+            checkKakaotalk();
+            fetchSheetData();
+        };
+    </script>
+</body>
+</html>
