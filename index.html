@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>1학년 프로그램 안내 센터</title>
+    <title>2026학년도 경일고 1학년부 프로그램 센터</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -17,19 +17,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .card-hover { transition: all 0.3s ease; }
-        @media (min-width: 768px) {
-            .card-hover:hover { 
-                transform: translateY(-6px); 
-                box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-            }
-        }
-
         .preserve-line { white-space: pre-line; }
 
         .loader {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #4f46e5;
+            border-top: 3px solid #2563eb;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -42,7 +34,6 @@
 
         .active-scale:active { transform: scale(0.97); }
 
-        /* 외부 브라우저 유도 안내 레이어 */
         #browserLinkLayer {
             display: none;
             position: fixed;
@@ -59,23 +50,22 @@
 </head>
 <body class="pb-20">
 
-    <!-- 외부 브라우저 실행 유도 레이어 (카톡용) -->
     <div id="browserLinkLayer">
-        <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-6">
+        <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
             <i class="fas fa-external-link-alt text-2xl"></i>
         </div>
         <h2 class="text-xl font-extrabold text-slate-800 mb-2">외부 브라우저에서 열기</h2>
         <p class="text-slate-500 text-sm mb-8 leading-relaxed">
-            더 안정적인 서비스를 위해<br>
-            Chrome이나 Safari 브라우저로 연결합니다.
+            안전하고 원활한 신청을 위해<br>
+            Chrome 또는 Safari 브라우저로 이동합니다.
         </p>
         <div class="loader"></div>
     </div>
 
     <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-6xl mx-auto px-5 h-14 flex items-center">
+        <div class="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
                     <i class="fas fa-graduation-cap text-sm"></i>
                 </div>
                 <span class="font-extrabold text-base text-slate-800 tracking-tight">2026학년도 경일고 1학년부</span>
@@ -83,10 +73,10 @@
         </div>
     </nav>
 
-    <header class="bg-indigo-600 py-8 px-6 text-center relative overflow-hidden">
+    <header class="bg-blue-600 py-10 px-6 text-center relative overflow-hidden">
         <div class="relative z-10 max-w-2xl mx-auto">
-            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-tight">1학년 프로그램 안내 게시판</h1>
-            <p class="text-indigo-100 text-sm opacity-90">상세 설명은 학급 게시판 참조해주세요.</p>
+            <h1 class="text-2xl font-extrabold text-white mb-1 tracking-tight">1학년 프로그램 안내 센터</h1>
+            <p class="text-blue-100 text-sm opacity-90 leading-relaxed">자세한 사항은 학급게시판이나 가정통신문을 확인하시기 바랍니다.</p>
         </div>
     </header>
 
@@ -95,17 +85,17 @@
             <div class="flex flex-col gap-3">
                 <div class="relative w-full">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" oninput="renderContent()" placeholder="프로그램 검색..." 
-                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 outline-none transition-all text-sm font-medium">
+                    <input type="text" id="searchInput" oninput="renderContent()" placeholder="프로그램 명칭 검색..." 
+                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:border-blue-500 outline-none transition-all text-sm font-medium">
                 </div>
                 <div class="flex gap-2">
                     <select id="statusFilter" onchange="renderContent()" class="flex-grow bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 outline-none text-sm font-bold text-slate-600 appearance-none">
-                        <option value="전체">전체 상태</option>
+                        <option value="전체">전체 상태보기</option>
                         <option value="접수중">접수중</option>
                         <option value="준비중">준비중</option>
                         <option value="마감">마감</option>
                     </select>
-                    <button onclick="fetchSheetData()" class="px-5 py-3 bg-slate-100 text-slate-600 rounded-xl active-scale" title="새로고침">
+                    <button onclick="fetchSheetData()" class="px-5 py-3 bg-slate-100 text-slate-600 rounded-xl active-scale">
                         <i class="fas fa-sync-alt" id="refreshIcon"></i>
                     </button>
                 </div>
@@ -114,7 +104,7 @@
 
         <div id="loadingUI" class="flex flex-col items-center py-20">
             <div class="loader mb-4"></div>
-            <p class="text-slate-400 text-sm font-medium">정보를 불러오는 중...</p>
+            <p class="text-slate-400 text-sm font-medium">데이터를 불러오는 중입니다...</p>
         </div>
 
         <div id="programGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
@@ -122,7 +112,6 @@
         <div id="errorUI" class="hidden py-20 text-center">
             <i class="fas fa-exclamation-circle text-red-400 text-3xl mb-3"></i>
             <p class="text-slate-600 font-bold">데이터 로드에 실패했습니다.</p>
-            <p class="text-xs text-slate-400 mt-2">브라우저의 '새로고침'을 눌러주세요.</p>
         </div>
     </main>
 
@@ -130,7 +119,6 @@
         function checkKakaotalk() {
             const userAgent = navigator.userAgent.toLowerCase();
             const isKakaotalk = userAgent.indexOf('kakaotalk') !== -1;
-            
             if (isKakaotalk) {
                 document.getElementById('browserLinkLayer').style.display = 'flex';
                 const currentUrl = window.location.href;
@@ -151,35 +139,34 @@
         async function fetchSheetData() {
             const grid = document.getElementById('programGrid');
             const loadingUI = document.getElementById('loadingUI');
-            const errorUI = document.getElementById('errorUI');
             const refreshIcon = document.getElementById('refreshIcon');
 
-            grid.innerHTML = '';
             loadingUI.classList.remove('hidden');
-            errorUI.classList.add('hidden');
             refreshIcon.classList.add('fa-spin');
 
             try {
                 const response = await fetch(SHEET_URL);
-                const data = await response.text();
+                const csvData = await response.text();
                 
-                const rows = data.split(/\r?\n/).slice(1); 
+                const rows = csvData.split(/\r?\n/).slice(1); 
                 programs = rows.map(row => {
-                    const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                    const clean = cols.map(c => c.replace(/^"|"$/g, '').trim());
+                    const pattern = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                    const cols = row.match(pattern) || [];
+                    const clean = cols.map(c => c.trim().replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                    
                     return {
-                        title: clean[0] || '',
-                        status: clean[1] || '접수중',
-                        desc: (clean[2] || '').replace(/\\n/g, '\n'),
-                        venue: clean[3] || '',
-                        url: clean[4] || '#'
+                        title: clean[0] || '',       // A열: 프로그램명
+                        status: clean[1] || '접수중',   // B열: 접수유무
+                        desc: (clean[2] || '').replace(/\\n/g, '\n'), // C열: 설명
+                        submission: clean[3] || '',  // D열: 접수방법
+                        url: clean[4] || '#'         // E열: 신청링크 or 제출처 내용
                     };
                 }).filter(p => p.title !== ''); 
 
                 renderContent();
             } catch (error) {
                 console.error(error);
-                errorUI.classList.remove('hidden');
+                document.getElementById('errorUI').classList.remove('hidden');
             } finally {
                 loadingUI.classList.add('hidden');
                 refreshIcon.classList.remove('fa-spin');
@@ -199,16 +186,17 @@
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 text-sm font-bold">검색 결과가 없습니다.</div>`;
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 text-sm font-bold">표시할 프로그램이 없습니다.</div>`;
                 return;
             }
 
             filtered.forEach(p => {
                 const isAccepting = p.status === '접수중';
                 const isPreparing = p.status === '준비중';
-                const isClosed = p.status === '마감';
-
-                let statusClass = 'bg-slate-100 text-slate-500'; // 기본 (마감)
+                
+                const isOnline = p.submission.includes('온라인');
+                
+                let statusClass = 'bg-slate-100 text-slate-500'; 
                 let dotClass = 'bg-slate-400';
 
                 if (isAccepting) {
@@ -218,32 +206,47 @@
                     statusClass = 'bg-amber-100 text-amber-700';
                     dotClass = 'bg-amber-500';
                 }
+
+                let actionArea = '';
+                if (isAccepting) {
+                    if (isOnline) {
+                        actionArea = `
+                            <a href="${p.url}" target="_blank" class="flex items-center justify-center w-full py-3 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-md active-scale">
+                                신청하기
+                            </a>`;
+                    } else {
+                        actionArea = `
+                            <div class="flex flex-col items-center justify-center w-full py-3 px-2 bg-emerald-50 border border-emerald-100 rounded-xl text-center shadow-sm">
+                                <span class="text-[9px] font-bold text-emerald-500 uppercase mb-0.5 tracking-wider font-sans">제출처</span>
+                                <span class="text-sm font-extrabold text-emerald-800">${p.url}</span>
+                            </div>`;
+                    }
+                } else {
+                    actionArea = `
+                        <button disabled class="w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-xl text-sm cursor-not-allowed">
+                            ${isPreparing ? '곧 시작됩니다' : '마감되었습니다'}
+                        </button>`;
+                }
                 
                 grid.insertAdjacentHTML('beforeend', `
-                    <div class="bg-white rounded-3xl border border-slate-100 flex flex-col p-6 shadow-sm relative overflow-hidden active-scale">
+                    <div class="bg-white rounded-2xl border border-slate-100 flex flex-col p-6 shadow-sm relative active-scale">
                         <div class="flex-grow">
                             <div class="mb-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${statusClass}">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusClass}">
                                     <span class="w-1 h-1 rounded-full ${dotClass} mr-1.5"></span>
                                     ${p.status}
                                 </span>
                             </div>
-                            <h3 class="text-xl font-extrabold text-slate-800 mb-3 leading-tight">${p.title}</h3>
-                            <p class="text-slate-500 text-sm leading-relaxed mb-6 preserve-line line-clamp-3">${p.desc}</p>
+                            <h3 class="text-lg font-extrabold text-slate-800 mb-2 leading-tight">${p.title}</h3>
+                            <p class="text-slate-500 text-sm leading-relaxed mb-6 preserve-line line-clamp-3 font-medium">${p.desc}</p>
                         </div>
-                        <div class="mt-auto pt-5 border-t border-slate-50 flex flex-col gap-2">
-                            <div class="flex items-center gap-1.5 text-slate-400 mb-1">
-                                <i class="fas fa-map-marker-alt text-[10px]"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-tight">${p.venue || '장소 정보 없음'}</span>
+                        <div class="mt-auto pt-4 border-t border-slate-50">
+                            <!-- 로고 및 텍스트 스타일 수정 섹션 -->
+                            <div class="flex items-center gap-2 text-slate-600 mb-4">
+                                <i class="fas ${isOnline ? 'fa-globe' : 'fa-hand-paper'} text-xs"></i>
+                                <span class="text-xs font-extrabold tracking-tight">${isOnline ? '온라인 접수' : '오프라인 접수'}</span>
                             </div>
-                            ${isAccepting ? 
-                                `<a href="${p.url}" target="_blank" class="flex items-center justify-center w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-md active-scale">
-                                    신청하기
-                                </a>` :
-                                `<button disabled class="w-full py-3.5 bg-slate-100 text-slate-400 font-bold rounded-xl text-sm">
-                                    ${isPreparing ? '곧 시작됩니다' : '마감되었습니다'}
-                                </button>`
-                            }
+                            ${actionArea}
                         </div>
                     </div>
                 `);
